@@ -1,0 +1,7 @@
+{
+  "name": "claude-code-analytics",
+  "description": "Analyze your Claude Code interaction patterns — prompt quality, tool usage, context window utilization, model tracking, and workflow habits. Generates interactive HTML reports with actionable suggestions.",
+  "author": {
+    "name": "Zeyuan Li"
+  }
+}
