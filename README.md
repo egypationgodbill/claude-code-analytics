@@ -16,7 +16,11 @@ Analyze your Claude Code interaction patterns and get actionable suggestions to 
 ## Installation
 
 ```bash
-claude plugin install claude-code-analytics@zeyuanli/claude-code-analytics
+# Add the marketplace (one-time)
+claude plugin marketplace add egypationgodbill/claude-code-analytics
+
+# Install the plugin
+claude plugin install claude-code-analytics@egypationgodbill-claude-code-analytics
 ```
 
 ## Usage
