@@ -39,23 +39,28 @@ claude plugin install --path ./claude-code-analytics/plugins/claude-code-analyti
 
 ### Slash command
 
-After installing the plugin, you get the `/analytics` slash command:
+After installing the plugin, the command is available as `/claude-code-analytics:analytics`. To create a shorter `/analytics` alias, add a command file:
 
-```
-/analytics              # Analyze last 30 days
-/analytics --days 7     # Last 7 days
-/analytics --project Espresso  # Filter by project name
-/analytics --all        # All time
+```bash
+echo '/claude-code-analytics:analytics' > ~/.claude/commands/analytics.md
 ```
 
-> **Note:** The `/analytics` command is provided by this plugin — it is not built into Claude Code. You must install the plugin first (see Installation above).
+Then you can use either form:
+
+```
+/claude-code-analytics:analytics          # Full namespaced command
+/analytics                                # Short alias (after creating the file above)
+/analytics --days 7                       # Last 7 days
+/analytics --project Espresso             # Filter by project name
+/analytics --all                          # All time
+```
 
 ### Standalone script
 
 You can also run the analysis script directly without installing the plugin:
 
 ```bash
-python3 scripts/analyze_sessions.py --output /tmp/analytics-report.html
+python3 plugins/claude-code-analytics/scripts/analyze_sessions.py --output /tmp/analytics-report.html
 open /tmp/analytics-report.html
 ```
 
