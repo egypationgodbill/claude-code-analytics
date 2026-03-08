@@ -15,6 +15,8 @@ Analyze your Claude Code interaction patterns and get actionable suggestions to 
 
 ## Installation
 
+### From the plugin marketplace
+
 ```bash
 # Add the marketplace (one-time)
 claude plugin marketplace add egypationgodbill/claude-code-analytics
@@ -23,9 +25,21 @@ claude plugin marketplace add egypationgodbill/claude-code-analytics
 claude plugin install claude-code-analytics@egypationgodbill-claude-code-analytics
 ```
 
+### From source
+
+```bash
+# Clone the repo
+git clone https://github.com/egypationgodbill/claude-code-analytics.git
+
+# Install the plugin locally
+claude plugin install --path ./claude-code-analytics/plugins/claude-code-analytics
+```
+
 ## Usage
 
 ### Slash command
+
+After installing the plugin, you get the `/analytics` slash command:
 
 ```
 /analytics              # Analyze last 30 days
@@ -34,9 +48,20 @@ claude plugin install claude-code-analytics@egypationgodbill-claude-code-analyti
 /analytics --all        # All time
 ```
 
+> **Note:** The `/analytics` command is provided by this plugin — it is not built into Claude Code. You must install the plugin first (see Installation above).
+
+### Standalone script
+
+You can also run the analysis script directly without installing the plugin:
+
+```bash
+python3 scripts/analyze_sessions.py --output /tmp/analytics-report.html
+open /tmp/analytics-report.html
+```
+
 ### Natural language
 
-Just ask Claude Code:
+Once the plugin is installed, you can also ask Claude Code:
 
 > "Analyze my Claude usage"
 > "How am I using Claude Code?"
@@ -64,6 +89,8 @@ The generated HTML report has six tabs:
 4. **Activity** — hour x day heatmap, session bubble chart, session table
 5. **Models & Context** — model usage breakdown, context window utilization timeline, token analysis
 6. **Themes** — session categorization, word cloud, n-gram tables, per-category efficiency
+
+Every metric card and chart title has a **?** hint icon — hover over it to see what the metric means and why it matters.
 
 ## Requirements
 

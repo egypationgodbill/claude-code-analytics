@@ -96,6 +96,14 @@ canvas { max-height: 350px; }
 .expand-content.open { display: block; }
 
 .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+
+/* Metric hints */
+.hint-icon { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--surface2); color: var(--text-dim); font-size: 10px; font-weight: 700; cursor: help; position: relative; margin-left: 6px; vertical-align: middle; flex-shrink: 0; }
+.hint-icon:hover { background: var(--accent); color: var(--bg); }
+.hint-icon .hint-tooltip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 400; line-height: 1.5; width: 260px; z-index: 100; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); white-space: normal; }
+.hint-icon .hint-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: var(--surface2); }
+.hint-icon:hover .hint-tooltip { display: block; }
+.card-label { display: flex; align-items: center; }
 </style>
 </head>
 <body>
@@ -310,6 +318,57 @@ canvas { max-height: 350px; }
 
   const palette = ['#6c8cff','#a78bfa','#34d399','#fbbf24','#fb923c','#f87171','#60a5fa','#c084fc','#4ade80','#facc15'];
 
+  // --- Metric Hints ---
+  const HINTS = {
+    // Dashboard cards
+    'Sessions Analyzed': 'Total number of Claude Code sessions found in the selected time period. Each session is one conversation.',
+    'Total Prompts': 'Total human messages sent across all sessions (excludes system/meta messages).',
+    'Avg Prompt Length': 'Average number of words per prompt. Longer prompts with context tend to produce better results with fewer back-and-forth messages.',
+    'Context Rate': 'Percentage of prompts that are "context-rich" — containing file paths, code blocks, or 50+ words. Higher is better for complex tasks.',
+    'Specificity': 'Percentage of prompts that reference specific code elements like filenames, function names, or class names. Specific prompts help Claude navigate faster.',
+    'Question Ratio': 'Percentage of prompts ending with "?". A mix of questions and directives is healthy — too many questions may indicate unclear intent.',
+    'Avg Messages/Session': 'Average number of human messages per session. High counts may mean tasks need more upfront context or plan mode.',
+    'Tools per Message': 'Average tool calls Claude makes per human message. High ratios may indicate Claude is exploring/searching a lot — try providing file paths.',
+    'Primary Model': 'The most frequently used Claude model across your sessions.',
+    'Avg Peak Context': 'Average highest context window usage per session. Context window is the total memory available to Claude in one conversation.',
+    // Tools cards
+    'Total Tool Calls': 'Total number of tool invocations (Read, Edit, Bash, Grep, etc.) across all sessions.',
+    'Plan Mode Used': 'Number of times plan mode was activated. Plan mode helps structure complex multi-step tasks before implementation.',
+    'Unique Tools': 'Number of distinct tool types used. A wider variety suggests diverse task types.',
+    // Models cards
+    'Models Used': 'Number of distinct Claude models used across sessions (e.g., Opus, Sonnet, Haiku).',
+    'Max Context Used': 'Highest context window utilization seen in any single session. Near 100% means the conversation was close to context limits.',
+    'Sessions >75% Context': 'Number of sessions where context window usage exceeded 75%. These long sessions may benefit from splitting or plan mode.',
+    // Chart hints
+    'Prompt Length Distribution': 'How your prompts are distributed by word count. Short prompts (1-5 words) are quick commands; longer ones provide more context.',
+    'Top Tools': 'Most frequently used Claude tools. Read/Edit/Bash are common for coding; Grep/Glob for searching.',
+    'Prompt Length Over Time': 'Scatter plot showing how your prompt lengths change over time. Trends may reflect growing familiarity or changing task complexity.',
+    'Word Count Distribution': 'Breakdown of prompt lengths. A healthy mix includes both quick commands and detailed context-rich prompts.',
+    'Prompt Type Breakdown': 'Categorization of prompts into questions, context-rich (file refs/code/50+ words), and brief directives.',
+    'Daily Average Prompt Length': 'Day-by-day average prompt word count. Useful for spotting changes in interaction style.',
+    'Tool Frequency': 'Complete breakdown of how often each tool is used. Read and Edit are typically the most common for coding tasks.',
+    'Subagent Types': 'Types of subagents (background workers) spawned during sessions. Subagents parallelize work like code review, exploration, etc.',
+    'Slash Commands': 'Frequency of slash commands (like /commit, /review) used from command history.',
+    'Activity Heatmap (Hour x Day)': 'When you use Claude Code most, shown by day of week and hour. Helps identify peak productivity times.',
+    'Sessions Overview': 'Bubble chart of sessions over time. Y-axis = messages, bubble size = tool calls. Larger bubbles mean more tool-heavy sessions.',
+    'Messages per Session': 'Detailed table of all sessions sorted by time, showing message counts, tool usage, and duration.',
+    'Messages by Model': 'Distribution of assistant messages across different Claude models.',
+    'Tokens by Model': 'Token consumption broken down by model and type (input, output, cache read, cache creation).',
+    'Context Window Utilization Over Time': 'How close each message got to the context window limit. Points near 100% mean the conversation was running out of room.',
+    'Context Utilization Distribution': 'Histogram of context usage levels. Most messages should be in the 0-25% bucket; many in 75%+ signals long sessions.',
+    'Token Breakdown by Model': 'Horizontal breakdown of input token types per model. High cache read ratios mean good prompt caching efficiency.',
+    'Sessions by Model': 'Per-session table showing which model was used, token counts, and peak context utilization.',
+    'Session Categories': 'Automated classification of sessions by primary activity type (debugging, feature dev, refactoring, etc.).',
+    'Efficiency by Category': 'Comparison of average prompt length, tool usage, and message count across task categories.',
+    'Word Cloud': 'Most frequently used non-trivial words across all prompts. Larger words appear more often.',
+  };
+
+  function hintHTML(label) {
+    const text = HINTS[label];
+    if (!text) return '';
+    return `<span class="hint-icon">?<span class="hint-tooltip">${text}</span></span>`;
+  }
+
   // --- Tabs ---
   const renderedTabs = { dashboard: true }; // dashboard is visible on load
   const deferredRenderers = {}; // tab name -> render function
@@ -351,8 +410,15 @@ canvas { max-height: 350px; }
   cards.forEach(c => {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<div class="card-label">${c.label}</div><div class="card-value">${c.value}</div>${c.sub ? `<div class="card-sub">${c.sub}</div>` : ''}`;
+    div.innerHTML = `<div class="card-label">${c.label}${hintHTML(c.label)}</div><div class="card-value">${c.value}</div>${c.sub ? `<div class="card-sub">${c.sub}</div>` : ''}`;
     cardGrid.appendChild(div);
+  });
+
+  // --- Add hints to all chart titles ---
+  document.querySelectorAll('.chart-container h3').forEach(h3 => {
+    const title = h3.textContent.trim();
+    const hint = hintHTML(title);
+    if (hint) h3.innerHTML = title + hint;
   });
 
   // --- Suggestions ---
@@ -468,6 +534,16 @@ canvas { max-height: 350px; }
     document.getElementById('tools-per-msg').textContent = tm.tools_per_message || 0;
     document.getElementById('plan-count').textContent = tm.plan_mode_count || 0;
     document.getElementById('unique-tools').textContent = tm.unique_tools_used || 0;
+    // Add hints to tool tab cards and chart titles
+    document.querySelectorAll('#tools .card-label').forEach(el => {
+      const label = el.childNodes[0]?.textContent?.trim() || el.textContent.trim();
+      const hint = hintHTML(label);
+      if (hint && !el.querySelector('.hint-icon')) el.innerHTML = label + hint;
+    });
+    document.querySelectorAll('#tools .chart-container h3').forEach(h3 => {
+      const title = h3.childNodes[0]?.textContent?.trim() || h3.textContent.trim();
+      if (!h3.querySelector('.hint-icon')) { const hint = hintHTML(title); if (hint) h3.innerHTML = title + hint; }
+    });
 
     if (tm.tool_frequency) {
       const entries = Object.entries(tm.tool_frequency);
@@ -511,6 +587,10 @@ canvas { max-height: 350px; }
 
   // --- Activity (deferred) ---
   deferredRenderers['activity'] = function() {
+    document.querySelectorAll('#activity .chart-container h3').forEach(h3 => {
+      const title = h3.childNodes[0]?.textContent?.trim() || h3.textContent.trim();
+      if (!h3.querySelector('.hint-icon')) { const hint = hintHTML(title); if (hint) h3.innerHTML = title + hint; }
+    });
     const heatmapEl = document.getElementById('heatmap');
     const days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
     const heatData = temp.heatmap || {};
@@ -596,8 +676,12 @@ canvas { max-height: 350px; }
     ].forEach(c => {
       const div = document.createElement('div');
       div.className = 'card';
-      div.innerHTML = `<div class="card-label">${c.label}</div><div class="card-value">${c.value}</div>${c.sub ? `<div class="card-sub">${c.sub}</div>` : ''}`;
+      div.innerHTML = `<div class="card-label">${c.label}${hintHTML(c.label)}</div><div class="card-value">${c.value}</div>${c.sub ? `<div class="card-sub">${c.sub}</div>` : ''}`;
       modelCards.appendChild(div);
+    });
+    document.querySelectorAll('#models .chart-container h3').forEach(h3 => {
+      const title = h3.childNodes[0]?.textContent?.trim() || h3.textContent.trim();
+      if (!h3.querySelector('.hint-icon')) { const hint = hintHTML(title); if (hint) h3.innerHTML = title + hint; }
     });
 
     // Messages by model (doughnut)
@@ -707,6 +791,10 @@ canvas { max-height: 350px; }
 
   // --- Themes (deferred) ---
   deferredRenderers['themes'] = function() {
+    document.querySelectorAll('#themes .chart-container h3').forEach(h3 => {
+      const title = h3.childNodes[0]?.textContent?.trim() || h3.textContent.trim();
+      if (!h3.querySelector('.hint-icon')) { const hint = hintHTML(title); if (hint) h3.innerHTML = title + hint; }
+    });
     if (th.category_counts) {
       const cats = Object.entries(th.category_counts);
       new Chart(document.getElementById('cat-chart'), {
