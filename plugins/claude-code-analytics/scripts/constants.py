@@ -1,6 +1,5 @@
 """Constants and pure utility helpers for Claude Code analytics."""
 
-import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
