@@ -1,7 +1,4 @@
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from constants import (
     CLAUDE_DIR, PROJECTS_DIR, HISTORY_FILE, STATS_FILE,
