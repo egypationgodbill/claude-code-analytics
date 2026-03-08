@@ -10,26 +10,36 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from parsers import collect_sessions, load_history, load_stats_cache
 from metrics import (
-    compute_prompt_metrics,
-    compute_tool_metrics,
     compute_efficiency_metrics,
-    compute_temporal_metrics,
-    compute_model_metrics,
-    compute_thematic_analysis,
     compute_history_metrics,
+    compute_model_metrics,
+    compute_prompt_metrics,
+    compute_temporal_metrics,
+    compute_thematic_analysis,
+    compute_tool_metrics,
 )
-from suggestions import generate_suggestions
+from parsers import collect_sessions, load_history, load_stats_cache
 from report import generate_report
+from suggestions import generate_suggestions
 
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze Claude Code interaction patterns")
     parser.add_argument("--days", type=int, default=30, help="Analyze last N days (default: 30)")
-    parser.add_argument("--project", type=str, default=None, help="Filter to projects matching substring")
+    parser.add_argument(
+        "--project",
+        type=str,
+        default=None,
+        help="Filter to projects matching substring",
+    )
     parser.add_argument("--session", type=str, default=None, help="Analyze specific session (ID prefix)")
-    parser.add_argument("--output", type=str, default="/tmp/deliberate-thinking-report.html", help="Output file path")
+    parser.add_argument(
+        "--output",
+        type=str,
+        default="/tmp/deliberate-thinking-report.html",
+        help="Output file path",
+    )
     parser.add_argument("--all", action="store_true", help="Analyze all data (no date filter)")
     args = parser.parse_args()
 
@@ -38,7 +48,10 @@ def main():
     print(f"Found {len(sessions)} sessions")
 
     if not sessions:
-        print("No sessions found matching filters. Try --all or --days 90", file=sys.stderr)
+        print(
+            "No sessions found matching filters. Try --all or --days 90",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     print("Computing metrics...")

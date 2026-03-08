@@ -1,5 +1,4 @@
 import pytest
-
 from report import generate_report
 
 

@@ -10,9 +10,7 @@ HISTORY_FILE = CLAUDE_DIR / "history.jsonl"
 STATS_FILE = CLAUDE_DIR / "stats-cache.json"
 
 # Detect local timezone offset once at startup
-LOCAL_UTC_OFFSET_HOURS = round(
-    datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() / 3600
-)
+LOCAL_UTC_OFFSET_HOURS = round(datetime.now(timezone.utc).astimezone().utcoffset().total_seconds() / 3600)
 
 STOPWORDS = frozenset(
     "the a an and or but in on at to for of is it this that with from by as be "
@@ -69,7 +67,7 @@ def parse_timestamp(ts_str):
         if sys.version_info >= (3, 11):
             return datetime.fromisoformat(ts_str)
         if "+" in ts_str[10:]:
-            ts_str = ts_str[:ts_str.rindex("+")]
+            ts_str = ts_str[: ts_str.rindex("+")]
         elif ts_str.endswith("+00:00"):
             ts_str = ts_str[:-6]
         return datetime.strptime(ts_str[:26], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc)

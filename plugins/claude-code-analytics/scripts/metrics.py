@@ -5,8 +5,10 @@ from collections import Counter, defaultdict
 from datetime import timedelta
 
 from constants import (
-    LOCAL_UTC_OFFSET_HOURS, STOPWORDS,
-    get_context_window, to_local_hour, to_local_weekday,
+    LOCAL_UTC_OFFSET_HOURS,
+    STOPWORDS,
+    to_local_hour,
+    to_local_weekday,
 )
 
 
@@ -29,25 +31,23 @@ def compute_prompt_metrics(sessions):
 
     # FIX #6: Split context rate into sub-metrics
     long_prompts = sum(1 for p in all_prompts if p["word_count"] > 50)
-    has_file_refs = sum(
-        1 for p in all_prompts
-        if re.search(r'[/\\]\w+\.\w+', p["text"])
-    )
+    has_file_refs = sum(1 for p in all_prompts if re.search(r"[/\\]\w+\.\w+", p["text"]))
     has_code_blocks = sum(1 for p in all_prompts if "```" in p["text"])
     # Union for overall context rate
     context_count = sum(
-        1 for p in all_prompts
-        if p["word_count"] > 50
-        or re.search(r'[/\\]\w+\.\w+', p["text"])
-        or "```" in p["text"]
+        1 for p in all_prompts if p["word_count"] > 50 or re.search(r"[/\\]\w+\.\w+", p["text"]) or "```" in p["text"]
     )
 
     # Specificity: file names, function names, code references
     specific_count = sum(
-        1 for p in all_prompts
-        if re.search(r'\w+\.(ts|tsx|js|jsx|py|rs|go|java|rb|css|html|md|json|yaml|yml|toml)', p["text"])
-        or re.search(r'`[a-zA-Z_]\w+`', p["text"])
-        or re.search(r'(function|class|method|variable|import|export)\s+\w+', p["text"], re.I)
+        1
+        for p in all_prompts
+        if re.search(
+            r"\w+\.(ts|tsx|js|jsx|py|rs|go|java|rb|css|html|md|json|yaml|yml|toml)",
+            p["text"],
+        )
+        or re.search(r"`[a-zA-Z_]\w+`", p["text"])
+        or re.search(r"(function|class|method|variable|import|export)\s+\w+", p["text"], re.I)
     )
 
     # Word count distribution buckets
@@ -70,11 +70,13 @@ def compute_prompt_metrics(sessions):
     prompt_timeline = []
     for p in all_prompts:
         if p["timestamp"]:
-            prompt_timeline.append({
-                "timestamp": p["timestamp"].isoformat(),
-                "word_count": p["word_count"],
-                "excerpt": p["text"][:100],
-            })
+            prompt_timeline.append(
+                {
+                    "timestamp": p["timestamp"].isoformat(),
+                    "word_count": p["word_count"],
+                    "excerpt": p["text"][:100],
+                }
+            )
 
     n = len(all_prompts)
     return {
@@ -144,23 +146,22 @@ def compute_efficiency_metrics(sessions):
     for sid, s in sessions.items():
         n_human = len(s["human_messages"])
         n_tools = len(s["assistant_tool_calls"])
-        avg_prompt_words = (
-            sum(m["word_count"] for m in s["human_messages"]) / n_human
-            if n_human else 0
-        )
+        avg_prompt_words = sum(m["word_count"] for m in s["human_messages"]) / n_human if n_human else 0
 
-        session_data.append({
-            "id": sid,
-            "project": s["project"],
-            "slug": s["slug"],
-            "human_messages": n_human,
-            "tool_calls": n_tools,
-            "avg_prompt_words": round(avg_prompt_words, 1),
-            "duration_minutes": round(s["duration_minutes"], 1),
-            "tools_per_message": round(n_tools / max(n_human, 1), 2),
-            "start_time": s["start_time"].isoformat() if s["start_time"] else None,
-            "models_used": s["models_used"],
-        })
+        session_data.append(
+            {
+                "id": sid,
+                "project": s["project"],
+                "slug": s["slug"],
+                "human_messages": n_human,
+                "tool_calls": n_tools,
+                "avg_prompt_words": round(avg_prompt_words, 1),
+                "duration_minutes": round(s["duration_minutes"], 1),
+                "tools_per_message": round(n_tools / max(n_human, 1), 2),
+                "start_time": s["start_time"].isoformat() if s["start_time"] else None,
+                "models_used": s["models_used"],
+            }
+        )
 
     session_data.sort(key=lambda x: x["start_time"] or "")
 
@@ -168,10 +169,12 @@ def compute_efficiency_metrics(sessions):
         "sessions": session_data,
         "total_sessions": len(session_data),
         "avg_messages_per_session": round(
-            sum(d["human_messages"] for d in session_data) / max(len(session_data), 1), 1
+            sum(d["human_messages"] for d in session_data) / max(len(session_data), 1),
+            1,
         ),
         "avg_duration": round(
-            sum(d["duration_minutes"] for d in session_data) / max(len(session_data), 1), 1
+            sum(d["duration_minutes"] for d in session_data) / max(len(session_data), 1),
+            1,
         ),
     }
 
@@ -194,7 +197,15 @@ def compute_temporal_metrics(sessions):
                 date_key = local_dt.strftime("%Y-%m-%d")
                 daily_prompt_lengths[date_key].append(msg["word_count"])
 
-    days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    days_order = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
     heatmap = {}
     for s in sessions.values():
         for msg in s["human_messages"]:
@@ -207,11 +218,13 @@ def compute_temporal_metrics(sessions):
     daily_avg = []
     for date_key in sorted(daily_prompt_lengths.keys()):
         lengths = daily_prompt_lengths[date_key]
-        daily_avg.append({
-            "date": date_key,
-            "avg_words": round(sum(lengths) / len(lengths), 1),
-            "count": len(lengths),
-        })
+        daily_avg.append(
+            {
+                "date": date_key,
+                "avg_words": round(sum(lengths) / len(lengths), 1),
+                "count": len(lengths),
+            }
+        )
 
     return {
         "hour_counts": dict(hour_counts),
@@ -248,25 +261,29 @@ def compute_model_metrics(sessions):
             session_total_output += mu["output_tokens"]
 
             if mu["utilization_pct"] > 0:
-                context_utilizations.append({
-                    "pct": mu["utilization_pct"],
-                    "model": m,
-                    "timestamp": mu["timestamp"],
-                    "session_id": sid,
-                })
+                context_utilizations.append(
+                    {
+                        "pct": mu["utilization_pct"],
+                        "model": m,
+                        "timestamp": mu["timestamp"],
+                        "session_id": sid,
+                    }
+                )
                 session_peak = max(session_peak, mu["utilization_pct"])
 
         primary_model = session_model_counts.most_common(1)[0][0] if session_model_counts else "unknown"
-        session_models.append({
-            "id": sid,
-            "slug": s["slug"],
-            "primary_model": _short_model_name(primary_model),
-            "models": {_short_model_name(k): v for k, v in session_model_counts.items()},
-            "peak_context_pct": round(session_peak, 1),
-            "total_output_tokens": session_total_output,
-            "human_messages": len(s["human_messages"]),
-            "start_time": s["start_time"].isoformat() if s["start_time"] else None,
-        })
+        session_models.append(
+            {
+                "id": sid,
+                "slug": s["slug"],
+                "primary_model": _short_model_name(primary_model),
+                "models": {_short_model_name(k): v for k, v in session_model_counts.items()},
+                "peak_context_pct": round(session_peak, 1),
+                "total_output_tokens": session_total_output,
+                "human_messages": len(s["human_messages"]),
+                "start_time": s["start_time"].isoformat() if s["start_time"] else None,
+            }
+        )
 
         if session_peak > 0:
             peak_utilizations.append(session_peak)
@@ -307,7 +324,11 @@ def compute_model_metrics(sessions):
         "model_message_counts": {_short_model_name(k): v for k, v in model_counts.most_common()},
         "context_utilization_distribution": util_buckets,
         "context_utilization_timeline": [
-            {"timestamp": u["timestamp"], "pct": u["pct"], "model": _short_model_name(u["model"])}
+            {
+                "timestamp": u["timestamp"],
+                "pct": u["pct"],
+                "model": _short_model_name(u["model"]),
+            }
             for u in util_timeline[-200:]  # last 200 data points
         ],
         "session_models": session_models,
@@ -350,11 +371,27 @@ def compute_thematic_analysis(sessions):
     # FIX #3: More specific keywords, weighted by specificity
     theme_keywords = {
         "debugging": {
-            "high": ["bug", "error", "crash", "broken", "debug", "traceback", "exception", "stack trace"],
+            "high": [
+                "bug",
+                "error",
+                "crash",
+                "broken",
+                "debug",
+                "traceback",
+                "exception",
+                "stack trace",
+            ],
             "low": ["fix", "issue", "fail", "failing", "wrong"],
         },
         "feature_dev": {
-            "high": ["implement", "new feature", "feature", "component", "build out", "scaffold"],
+            "high": [
+                "implement",
+                "new feature",
+                "feature",
+                "component",
+                "build out",
+                "scaffold",
+            ],
             "low": ["build", "create", "add"],  # FIX #3: these are low-weight now
         },
         "refactoring": {
@@ -362,11 +399,26 @@ def compute_thematic_analysis(sessions):
             "low": ["rename", "move", "extract"],
         },
         "exploration": {
-            "high": ["explore", "how does", "what is", "explain", "investigate", "understand"],
+            "high": [
+                "explore",
+                "how does",
+                "what is",
+                "explain",
+                "investigate",
+                "understand",
+            ],
             "low": ["look at", "show me", "where is"],
         },
         "configuration": {
-            "high": ["config", "setup", "install", "configure", "environment", "dependency", "dependencies"],
+            "high": [
+                "config",
+                "setup",
+                "install",
+                "configure",
+                "environment",
+                "dependency",
+                "dependencies",
+            ],
             "low": ["setting", "settings"],
         },
         "review": {
@@ -374,11 +426,27 @@ def compute_thematic_analysis(sessions):
             "low": ["verify", "approve"],  # FIX #3: removed "check" — too generic
         },
         "documentation": {
-            "high": ["document", "readme", "docstring", "docs", "write up", "documentation"],
+            "high": [
+                "document",
+                "readme",
+                "docstring",
+                "docs",
+                "write up",
+                "documentation",
+            ],
             "low": ["comment"],
         },
         "testing": {
-            "high": ["test", "spec", "assert", "expect", "mock", "jest", "coverage", "unit test"],
+            "high": [
+                "test",
+                "spec",
+                "assert",
+                "expect",
+                "mock",
+                "jest",
+                "coverage",
+                "unit test",
+            ],
             "low": [],
         },
     }
@@ -417,27 +485,30 @@ def compute_thematic_analysis(sessions):
         if scores.get(best_theme, 0) < 1.0:  # FIX #3: minimum threshold
             best_theme = "uncategorized"
 
-        session_categories.append({
-            "id": sid,
-            "project": s["project"],
-            "slug": s["slug"],
-            "category": best_theme,
-            "human_messages": len(s["human_messages"]),
-            "avg_prompt_words": round(
-                sum(m["word_count"] for m in s["human_messages"]) / max(len(s["human_messages"]), 1), 1
-            ),
-            "tool_calls": len(s["assistant_tool_calls"]),
-            "start_time": s["start_time"].isoformat() if s["start_time"] else None,
-        })
+        session_categories.append(
+            {
+                "id": sid,
+                "project": s["project"],
+                "slug": s["slug"],
+                "category": best_theme,
+                "human_messages": len(s["human_messages"]),
+                "avg_prompt_words": round(
+                    sum(m["word_count"] for m in s["human_messages"]) / max(len(s["human_messages"]), 1),
+                    1,
+                ),
+                "tool_calls": len(s["assistant_tool_calls"]),
+                "start_time": s["start_time"].isoformat() if s["start_time"] else None,
+            }
+        )
 
         # FIX #2: N-grams per session — no cross-session contamination
-        words = re.findall(r'[a-z]+', prompt_text)
+        words = re.findall(r"[a-z]+", prompt_text)
         filtered = [w for w in words if w not in STOPWORDS and len(w) > 2]
         all_unigrams.update(filtered)
         for i in range(len(filtered) - 1):
-            all_bigrams[f"{filtered[i]} {filtered[i+1]}"] += 1
+            all_bigrams[f"{filtered[i]} {filtered[i + 1]}"] += 1
         for i in range(len(filtered) - 2):
-            all_trigrams[f"{filtered[i]} {filtered[i+1]} {filtered[i+2]}"] += 1
+            all_trigrams[f"{filtered[i]} {filtered[i + 1]} {filtered[i + 2]}"] += 1
 
     cat_counts = Counter(sc["category"] for sc in session_categories)
 

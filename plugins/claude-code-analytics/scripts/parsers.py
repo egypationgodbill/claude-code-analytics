@@ -3,11 +3,13 @@
 import json
 import sys
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from constants import (
-    PROJECTS_DIR, HISTORY_FILE, STATS_FILE,
-    get_context_window, parse_timestamp,
+    HISTORY_FILE,
+    PROJECTS_DIR,
+    STATS_FILE,
+    get_context_window,
+    parse_timestamp,
 )
 
 
@@ -114,12 +116,14 @@ def parse_session_file(filepath, session_id, project_name, cutoff):
                     is_meta = record.get("isMeta", False)
 
                     if isinstance(content, str) and content.strip() and not is_meta:
-                        session["human_messages"].append({
-                            "text": content.strip(),
-                            "timestamp": ts,
-                            "word_count": len(content.split()),
-                            "char_count": len(content),
-                        })
+                        session["human_messages"].append(
+                            {
+                                "text": content.strip(),
+                                "timestamp": ts,
+                                "word_count": len(content.split()),
+                                "char_count": len(content),
+                            }
+                        )
 
                 elif rtype == "assistant":
                     uuid = record.get("uuid", "")
@@ -148,9 +152,7 @@ def parse_session_file(filepath, session_id, project_name, cutoff):
 
     # FIX #1: Now process deduplicated assistant records
     for uid, data in seen_uuids.items():
-        _process_assistant_content(
-            session, data["content"], data["model"], data["usage"], data["timestamp"]
-        )
+        _process_assistant_content(session, data["content"], data["model"], data["usage"], data["timestamp"])
 
     # Apply date filter
     if cutoff and first_ts and first_ts < cutoff:
@@ -160,9 +162,7 @@ def parse_session_file(filepath, session_id, project_name, cutoff):
     session["start_time"] = first_ts
     if session["all_timestamps"]:
         session["end_time"] = max(session["all_timestamps"])
-        session["duration_minutes"] = (
-            (session["end_time"] - min(session["all_timestamps"])).total_seconds() / 60
-        )
+        session["duration_minutes"] = (session["end_time"] - min(session["all_timestamps"])).total_seconds() / 60
     else:
         session["end_time"] = first_ts
         session["duration_minutes"] = 0
@@ -188,17 +188,21 @@ def _process_assistant_content(session, content, model, usage, ts):
         total_context = input_tokens + cache_read + cache_creation
 
         if total_context > 0 or output_tokens > 0:
-            session["model_usage"].append({
-                "model": model or "unknown",
-                "input_tokens": input_tokens,
-                "cache_read": cache_read,
-                "cache_creation": cache_creation,
-                "output_tokens": output_tokens,
-                "total_context": total_context,
-                "context_window": get_context_window(model),
-                "utilization_pct": round(total_context / get_context_window(model) * 100, 1) if total_context > 0 else 0,
-                "timestamp": ts.isoformat() if ts else None,
-            })
+            session["model_usage"].append(
+                {
+                    "model": model or "unknown",
+                    "input_tokens": input_tokens,
+                    "cache_read": cache_read,
+                    "cache_creation": cache_creation,
+                    "output_tokens": output_tokens,
+                    "total_context": total_context,
+                    "context_window": get_context_window(model),
+                    "utilization_pct": round(total_context / get_context_window(model) * 100, 1)
+                    if total_context > 0
+                    else 0,
+                    "timestamp": ts.isoformat() if ts else None,
+                }
+            )
 
     # Extract tool calls
     if isinstance(content, list):
@@ -207,11 +211,13 @@ def _process_assistant_content(session, content, model, usage, ts):
                 if block.get("type") == "tool_use":
                     tool_name = block.get("name", "unknown")
                     tool_input = block.get("input", {})
-                    session["assistant_tool_calls"].append({
-                        "name": tool_name,
-                        "timestamp": ts,
-                        "input_summary": _summarize_tool_input(tool_name, tool_input),
-                    })
+                    session["assistant_tool_calls"].append(
+                        {
+                            "name": tool_name,
+                            "timestamp": ts,
+                            "input_summary": _summarize_tool_input(tool_name, tool_input),
+                        }
+                    )
                 session["total_assistant_blocks"] += 1
 
 

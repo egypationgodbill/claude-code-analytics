@@ -1,13 +1,10 @@
 import json
-from pathlib import Path
-from datetime import datetime, timezone
 
 from parsers import (
-    parse_session_file,
-    _process_assistant_content,
     _summarize_tool_input,
     load_history,
     load_stats_cache,
+    parse_session_file,
 )
 
 
@@ -107,21 +104,27 @@ def test_parse_session_file_deduplicates_uuid(tmp_path):
 def test_summarize_tool_input_read():
     assert _summarize_tool_input("Read", {"file_path": "/foo/bar.py"}) == "/foo/bar.py"
 
+
 def test_summarize_tool_input_bash():
     assert _summarize_tool_input("Bash", {"command": "ls -la"}) == "ls -la"
+
 
 def test_summarize_tool_input_unknown():
     result = _summarize_tool_input("CustomTool", {"key": "value"})
     assert isinstance(result, str)
 
+
 def test_load_history_empty(tmp_path, monkeypatch):
     import parsers
+
     monkeypatch.setattr(parsers, "HISTORY_FILE", tmp_path / "nonexistent.jsonl")
     result = load_history(30, None, False)
     assert result == []
 
+
 def test_load_stats_cache_missing(tmp_path, monkeypatch):
     import parsers
+
     monkeypatch.setattr(parsers, "STATS_FILE", tmp_path / "nonexistent.json")
     result = load_stats_cache()
     assert result == {}

@@ -1,14 +1,14 @@
 from datetime import datetime, timezone
 
 from metrics import (
-    compute_prompt_metrics,
-    compute_tool_metrics,
-    compute_efficiency_metrics,
-    compute_temporal_metrics,
-    compute_model_metrics,
     _short_model_name,
-    compute_thematic_analysis,
+    compute_efficiency_metrics,
     compute_history_metrics,
+    compute_model_metrics,
+    compute_prompt_metrics,
+    compute_temporal_metrics,
+    compute_thematic_analysis,
+    compute_tool_metrics,
 )
 
 
@@ -27,7 +27,11 @@ def _make_session(**overrides):
             }
         ],
         "assistant_tool_calls": [
-            {"name": "Read", "timestamp": datetime(2024, 1, 15, 12, 0, tzinfo=timezone.utc), "input_summary": "auth.py"},
+            {
+                "name": "Read",
+                "timestamp": datetime(2024, 1, 15, 12, 0, tzinfo=timezone.utc),
+                "input_summary": "auth.py",
+            },
         ],
         "total_assistant_blocks": 2,
         "subagent_types": [],
@@ -130,7 +134,7 @@ def test_compute_thematic_analysis_debugging():
                 "word_count": 7,
                 "char_count": 40,
             }
-        ]
+        ],
     )
     sessions = _sessions_dict(s)
     result = compute_thematic_analysis(sessions)
