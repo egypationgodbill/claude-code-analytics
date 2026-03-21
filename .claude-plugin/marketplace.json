@@ -15,6 +15,16 @@
       },
       "source": "./plugins/claude-code-analytics",
       "category": "productivity"
+    },
+    {
+      "name": "agent-motivator",
+      "description": "High-agency problem-solving with corporate pressure escalation. Forces exhaustive debugging, proactive initiative, and verification-driven delivery. Chinese, English, and encouraging modes. Adapted from PUA Skill (MIT, github.com/tanweai/pua) — security-hardened.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Zeyuan Li"
+      },
+      "source": "./plugins/agent-motivator",
+      "category": "productivity"
     }
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "name": "agent-motivator",
+  "version": "1.0.0",
+  "description": "High-agency problem-solving with corporate pressure escalation. Forces exhaustive debugging, proactive initiative, and verification-driven delivery. Adapted from PUA Skill (MIT, github.com/tanweai/pua) — security-hardened: no hooks, no data collection, no external calls.",
+  "author": {
+    "name": "Zeyuan Li"
+  },
+  "license": "MIT"
+}
